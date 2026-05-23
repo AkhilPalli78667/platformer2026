@@ -199,7 +199,7 @@ public class Level {
 	// Please make sure you read the rubric/directions carefully and implement the
 	// solution recursively!
 
-	//Precondition: Mapis mot null
+	//Precondition: Map is mot null
 	//Postcondition: Water is recursively placed onto the map following the
 	private void water(int col, int row, Map map, int fullness) {
 		// bounds check
