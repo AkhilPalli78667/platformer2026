@@ -27,7 +27,7 @@ public abstract class GameBase {
 	/**
 	 * Creates a new window and starts the game loop
 	 * @param title The title of the window
-	 * @param width The width of the window
+	 * @param width The width of the windowdsadsa
 	 * @param height The height of the window
 	 */
 	public void start(String title, int width, int height) {
