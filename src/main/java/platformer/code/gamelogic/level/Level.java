@@ -201,16 +201,57 @@ public class Level {
 
 	//Adds gas tiles until the requisite number of squares are filled or there is no more room 
 private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<Gas> placedThisRound) {
-     Gas g = new Gas(
-        col,
-        row,
-        tileSize,
-        tileset.getImage("GasOne"),
-        this,
-        0
-    );
+     Tile[][] tiles = map.getTiles();
 
-    map.addTile(col, row, g);
+    // fiorst one ;-;
+    Gas start = new Gas(col, row, tileSize,
+            tileset.getImage("GasOne"), this, 0);
+
+    map.addTile(col, row, start);
+    placedThisRound.add(start);
+
+    int gasPlaced = 1;
+
+    
+    for (int i = 0; i < placedThisRound.size() && gasPlaced < numSquaresToFill; i++) {
+
+        Gas current = placedThisRound.get(i);
+
+        int currentCol = current.getCol();
+        int currentRow = current.getRow();
+
+        int[][] directions = {
+                {0, -1},   
+                {-1, 0},  
+                {1, 0},   
+                {0, 1}    
+        };
+
+        for (int d = 0; d < directions.length && gasPlaced < numSquaresToFill; d++) {
+
+            int newCol = currentCol + directions[d][0];
+            int newRow = currentRow + directions[d][1];
+
+            
+            if (newCol < 0 || newCol >= map.getWidth()
+                    || newRow < 0 || newRow >= map.getHeight()) {
+                continue;
+            }
+
+            Tile target = tiles[newCol][newRow];
+
+    
+            if (target != null && !(target instanceof Gas)&& !target.isSolid() && !(target instanceof Water) && !(target instanceof Spikes)&& !(target instanceof Flag)) {
+
+                Gas newGas = new Gas(newCol, newRow,tileSize,tileset.getImage("GasOne"),this,0);
+
+                map.addTile(newCol, newRow, newGas);
+                placedThisRound.add(newGas);
+
+                gasPlaced++;
+            }
+        }
+    }
 }	
 
 
