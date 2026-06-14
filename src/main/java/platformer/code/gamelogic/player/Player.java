@@ -29,10 +29,7 @@ public class Player extends PhysicsObject{
 		walkSpeed = n;
 	}
 
-	public boolean isTouching(){
-		
-	}
-
+	
 	@Override
 	public void update(float tslf) {
 		super.update(tslf);
