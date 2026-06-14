@@ -252,7 +252,7 @@ private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<G
             }
         }
     }
-}	
+}
 
 
 	// #############################################################################################################
@@ -304,9 +304,19 @@ private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<G
 			Tile below = map.getTiles()[col][row + 1];
 
 			// empty space below -> fall
-			if (below == null || !below.isSolid()) {
-				water(col, row + 1, map, 0);
+			if (!below.isSolid()) {
+				
+				if (row + 2< map.getTiles()[0].length&& map.getTiles()[col][row+2].isSolid()){
+					
+					water(col, row + 1, map, 3);
+				}
+
+				
+				else {
+					water(col, row + 1, map, 0);
+				}
 				return;
+
 			}
 		}
 
@@ -316,13 +326,11 @@ private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<G
 
 		// falling water that lands becomes full
 		int nextFullness = fullness;
-
-		if (fullness == 0)
-			nextFullness = 3;
-		else if (fullness > 1)
+		if (fullness > 1)
 			nextFullness = fullness - 1;
 		else
-			return; // quarter water stops spreading
+			water(col + 1, row, map, nextFullness);
+
 
 		// right
 		water(col + 1, row, map, nextFullness);

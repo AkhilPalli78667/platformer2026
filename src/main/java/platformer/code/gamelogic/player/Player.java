@@ -23,6 +23,16 @@ public class Player extends PhysicsObject{
 		this.hitbox = new RectHitbox(this, offset,offset, width -offset, height - offset);
 	}
 
+
+	public void changeSpeed(float n){
+		float old = 400;
+		walkSpeed = n;
+	}
+
+	public boolean isTouching(){
+		
+	}
+
 	@Override
 	public void update(float tslf) {
 		super.update(tslf);
