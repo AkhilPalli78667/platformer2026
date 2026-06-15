@@ -157,7 +157,42 @@ public class Level {
 	public void update(float tslf) {
 		if (active) {
 			// Update the player
-			player.update(tslf);
+
+
+	player.update(tslf);
+
+		// WATER EFFECT
+	boolean touchingWater = false;
+
+	for (int c = 0; c < map.getTiles().length; c++) {
+		for (int r = 0; r < map.getTiles()[c].length; r++) {
+
+
+    	Tile tile = map.getTiles()[c][r];
+
+    	if (tile instanceof Water) {
+        	if (tile.getHitbox().isIntersecting(player.getHitbox())) {
+            touchingWater = true;
+        	}
+    	}
+	}
+
+
+	}
+
+	if (touchingWater) {
+	player.changeSpeed(200);
+	} else {
+	player.changeSpeed(400);
+	}
+
+	// Player death
+	if (map.getFullHeight() + 100 < player.getY())
+
+
+
+
+
 
 			// Player death
 			if (map.getFullHeight() + 100 < player.getY())
