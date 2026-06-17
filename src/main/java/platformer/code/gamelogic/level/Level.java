@@ -16,6 +16,7 @@ import platformer.code.gamelogic.tiledMap.Map;
 import platformer.code.gamelogic.tiles.Flag;
 import platformer.code.gamelogic.tiles.Flower;
 import platformer.code.gamelogic.tiles.Gas;
+import platformer.code.gamelogic.tiles.Redge;
 import platformer.code.gamelogic.tiles.SolidTile;
 import platformer.code.gamelogic.tiles.Spikes;
 import platformer.code.gamelogic.tiles.Tile;
@@ -35,6 +36,7 @@ public class Level {
 
 	private ArrayList<Enemy> enemiesList = new ArrayList<>();
 	private ArrayList<Flower> flowers = new ArrayList<>();
+	private ArrayList<Gas> gasses = new ArrayList<>();
 
 	private List<PlayerDieListener> dieListeners = new ArrayList<>();
 	private List<PlayerWinListener> winListeners = new ArrayList<>();
@@ -71,6 +73,7 @@ public class Level {
 	public void restartLevel() {
 		enemiesList.clear();
 		flowers.clear();
+		gasses.clear();
 
 		int[][] values = mapdata.getValues();
 		Tile[][] tiles = new Tile[width][height];
@@ -132,7 +135,7 @@ public class Level {
 				else if (values[x][y] == 21)
 					tiles[x][y] = new Water(xPosition, yPosition, tileSize, tileset.getImage("Quarter_water"), this, 1);
 				else if (values[x][y] == 22)
-					tiles[x][y] = new SolidTile(xPosition, yPosition, tileSize, tileset.getImage("Redge"), this);
+					tiles[x][y] = new Redge(xPosition, yPosition, tileSize, tileset.getImage("Redge"), this);
 			}
 
 		}
@@ -169,33 +172,37 @@ public class Level {
 
 			player.update(tslf);
 
+
+			boolean touchingRedge = false;
+
+			if (player.getCollisionMatrix()[PhysicsObject.BOT] instanceof Redge)
+				player.enableDoubleJump();
+			if (player.getCollisionMatrix()[PhysicsObject.TOP] instanceof Redge)
+				player.enableDoubleJump();
+			if (player.getCollisionMatrix()[PhysicsObject.LEF] instanceof Redge)
+				player.enableDoubleJump();
+			if (player.getCollisionMatrix()[PhysicsObject.RIG] instanceof Redge)
+				player.enableDoubleJump();
+
+		
+
 			// added
 
-			for (int c = 0; c < map.getTiles().length; c++) {
-				for (int r = 0; r < map.getTiles()[c].length; r++) {
-
-					Tile tile = map.getTiles()[c][r];
-
-					if (tile instanceof Gas &&
-							tile.getHitbox().isIntersecting(player.getHitbox())) {
-
-						if (!gasFlying) {
-							gasFlying = true;
-							gasFlyStartTime = System.currentTimeMillis();
-						}
-					}
+			boolean touchingGas = false;
+			for (int i = 0; i < gasses.size(); i++) {
+				if (gasses.get(i).getHitbox().isIntersecting(player.getHitbox())) {
+					touchingGas = true;
+					//System.out.println("1");
 				}
-
 			}
-
-			if (gasFlying) {
-
+			if (touchingGas) {
 				player.fly();
-
-				if (System.currentTimeMillis() - gasFlyStartTime > 5000) {
-					gasFlying = false;
-				}
-
+				gasFlyStartTime = System.currentTimeMillis();
+			} else if (System.currentTimeMillis() - gasFlyStartTime >= 5000) {
+				gasFlyStartTime = 0;
+				player.stopfly();
+			} else {
+				player.stopfly();
 			}
 
 			// WATER EFFECT
@@ -221,45 +228,20 @@ public class Level {
 				player.changeSpeed(400);
 			}
 
+			for (int c = 0; c < map.getTiles().length; c++) {
+				for (int r = 0; r < map.getTiles()[c].length; r++) {
 
+					Tile tile = map.getTiles()[c][r];
 
+					if (tile != null &&
+							tile.getHitbox() != null &&
+							tile.getHitbox().isIntersecting(player.getHitbox()) &&
+							tile.getImage() == tileset.getImage("Redge")) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-for (int c = 0; c < map.getTiles().length; c++) {
-for (int r = 0; r < map.getTiles()[c].length; r++) {
-
-    Tile tile = map.getTiles()[c][r];
-
-    if (tile != null &&
-        tile.getHitbox() != null &&
-        tile.getHitbox().isIntersecting(player.getHitbox()) &&
-        tile.getImage() == tileset.getImage("Redge")) {
-
-        doubleJumpUnlocked = true;
-    }
-}
-}
-
-
-
-
-
-
-
-
-
-
+						doubleJumpUnlocked = true;
+					}
+				}
+			}
 
 			// Player death
 			if (map.getFullHeight() + 100 < player.getY())
@@ -330,6 +312,7 @@ for (int r = 0; r < map.getTiles()[c].length; r++) {
 				if (!target.isSolid() && !(target instanceof Gas)) {
 					Gas g = new Gas(newCol, newRow, tileSize, tileset.getImage("GasOne"), this, 0);
 					placedThisRound.add(g);
+					gasses.add(g);
 					map.addTile(newCol, newRow, g);
 					numSquaresToFill -= 1;
 				}
@@ -353,6 +336,11 @@ for (int r = 0; r < map.getTiles()[c].length; r++) {
 
 	// Precondition: Map is mot null
 	// Postcondition: Water is recursively placed onto the map following the
+
+	public void dj(int col, int row) {
+
+	}
+
 	private void water(int col, int row, Map map, int fullness) {
 		// bounds check
 		if (col < 0 || row < 0 ||
@@ -380,7 +368,7 @@ for (int r = 0; r < map.getTiles()[c].length; r++) {
 			image = "Quarter_water";
 		else if (fullness == 0)
 			image = "Falling_water";
-		System.out.println("got here too");
+		//System.out.println("got here too");
 		Water w = new Water(col, row, tileSize, tileset.getImage(image), this, fullness);
 
 		map.addTile(col, row, w);

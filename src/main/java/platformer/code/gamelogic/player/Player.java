@@ -8,6 +8,7 @@ import platformer.code.gameengine.graphics.MyGraphics;
 import platformer.code.gameengine.hitbox.RectHitbox;
 import platformer.code.gamelogic.Main;
 import platformer.code.gamelogic.level.Level;
+import platformer.code.gamelogic.tiles.SolidTile;
 import platformer.code.gamelogic.tiles.Tile;
 
 public class Player extends PhysicsObject {
@@ -20,8 +21,8 @@ public class Player extends PhysicsObject {
 	///
 	/// ADDED
 	private boolean canDoubleJump = false;
-	private boolean hasDoubleJumped = false;
 	private boolean jumpReleased = true;
+	private boolean isFlying = false;
 
 	public Player(float x, float y, Level level) {
 
@@ -48,20 +49,39 @@ public class Player extends PhysicsObject {
 		}
 		if (PlayerInput.isJumpKeyDown()) {
 
-    if (!isJumping) {
-        movementVector.y = -jumpPower;
-        isJumping = true;
-    }
-    else if (canDoubleJump && !hasDoubleJumped && jumpReleased) {
-        movementVector.y = -jumpPower;
-        hasDoubleJumped = true;
-        jumpReleased = false;
-    }
+			if (!isJumping && !isFlying) {
+				movementVector.y = -jumpPower;
+				isJumping = true;
+				jumpReleased = false;
+			} 
+			else if (canDoubleJump  && jumpReleased && !isFlying) {
 
-}
-else {			
-    jumpReleased = true;
-}}
+				//System.out.println(canDoubleJump + " " + hasDoubleJumped + " " + jumpReleased + isFlying);
+
+
+				//System.out.println("isJumping  "+ " =  " + isJumping);
+				
+				
+					//System.out.println("double jumped");
+				
+				
+System.out.println("double jumping");
+
+				movementVector.y -= jumpPower+500;
+				canDoubleJump = false;
+				jumpReleased=false;
+			}                                                                                                        
+
+		} else {
+			jumpReleased = true;
+		}
+		System.out.println(canDoubleJump +  " " + jumpReleased + " "+!isFlying);
+
+		if(collisionMatrix[BOT] instanceof SolidTile){
+
+			isJumping = false;
+		}
+	}
 	///
 
 	@Override
@@ -85,26 +105,24 @@ else {
 	// added
 	// gas flhy
 	public void fly() {
-		movementVector.y = -350;
+		movementVector.y = -1350;
+		isFlying = true;
+	}
+
+	public void stopfly() {
+		isFlying = false;
 	}
 
 	// doible jump
 
 	public void enableDoubleJump() {
 		canDoubleJump = true;
+		// System.out.println("double jump ennaaabled");
 	}
 
 	public void resetDoubleJump() {
-		hasDoubleJumped = false;
+		canDoubleJump= false;
 	}
 
-	public boolean canUseDoubleJump() {
-		return canDoubleJump && !hasDoubleJumped;
-	}
-
-	public void useDoubleJump() {
-		movementVector.y = -1350;
-		hasDoubleJumped = true;
-	}
 
 }
