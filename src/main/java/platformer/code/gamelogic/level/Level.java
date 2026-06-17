@@ -46,6 +46,15 @@ public class Level {
 	private Tileset tileset;
 	public static float GRAVITY = 70;
 
+	// added
+
+	// gas
+	private boolean gasFlying = false;
+	private long gasFlyStartTime = 0;
+
+	// dbljump
+	private boolean doubleJumpUnlocked = false;
+
 	public Level(LevelData leveldata) {
 		this.leveldata = leveldata;
 		mapdata = leveldata.getMapdata();
@@ -158,41 +167,103 @@ public class Level {
 		if (active) {
 			// Update the player
 
+			player.update(tslf);
 
-	player.update(tslf);
+			// added
 
-		// WATER EFFECT
-	boolean touchingWater = false;
+			for (int c = 0; c < map.getTiles().length; c++) {
+				for (int r = 0; r < map.getTiles()[c].length; r++) {
 
-	for (int c = 0; c < map.getTiles().length; c++) {
-		for (int r = 0; r < map.getTiles()[c].length; r++) {
+					Tile tile = map.getTiles()[c][r];
+
+					if (tile instanceof Gas &&
+							tile.getHitbox().isIntersecting(player.getHitbox())) {
+
+						if (!gasFlying) {
+							gasFlying = true;
+							gasFlyStartTime = System.currentTimeMillis();
+						}
+					}
+				}
+
+			}
+
+			if (gasFlying) {
+
+				player.fly();
+
+				if (System.currentTimeMillis() - gasFlyStartTime > 5000) {
+					gasFlying = false;
+				}
+
+			}
+
+			// WATER EFFECT
+			boolean touchingWater = false;
+
+			for (int c = 0; c < map.getTiles().length; c++) {
+				for (int r = 0; r < map.getTiles()[c].length; r++) {
+
+					Tile tile = map.getTiles()[c][r];
+
+					if (tile instanceof Water) {
+						if (tile.getHitbox().isIntersecting(player.getHitbox())) {
+							touchingWater = true;
+						}
+					}
+				}
+
+			}
+
+			if (touchingWater) {
+				player.changeSpeed(200);
+			} else {
+				player.changeSpeed(400);
+			}
 
 
-    	Tile tile = map.getTiles()[c][r];
-
-    	if (tile instanceof Water) {
-        	if (tile.getHitbox().isIntersecting(player.getHitbox())) {
-            touchingWater = true;
-        	}
-    	}
-	}
-
-
-	}
-
-	if (touchingWater) {
-	player.changeSpeed(200);
-	} else {
-	player.changeSpeed(400);
-	}
-
-	// Player death
-	if (map.getFullHeight() + 100 < player.getY())
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+for (int c = 0; c < map.getTiles().length; c++) {
+for (int r = 0; r < map.getTiles()[c].length; r++) {
+
+    Tile tile = map.getTiles()[c][r];
+
+    if (tile != null &&
+        tile.getHitbox() != null &&
+        tile.getHitbox().isIntersecting(player.getHitbox()) &&
+        tile.getImage() == tileset.getImage("Redge")) {
+
+        doubleJumpUnlocked = true;
+    }
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+			// Player death
+			if (map.getFullHeight() + 100 < player.getY())
+				onPlayerDeath();
 
 			// Player death
 			if (map.getFullHeight() + 100 < player.getY())
@@ -208,9 +279,10 @@ public class Level {
 
 			for (int i = 0; i < flowers.size(); i++) {
 				if (flowers.get(i).getHitbox().isIntersecting(player.getHitbox())) {
-					if (flowers.get(i).getType() == 1)
+					if (flowers.get(i).getType() == 1) {
+						System.out.println("here");
 						water(flowers.get(i).getCol(), flowers.get(i).getRow(), map, 3);
-					else
+					} else
 						addGas(flowers.get(i).getCol(), flowers.get(i).getRow(), map, 20, new ArrayList<Gas>());
 					flowers.remove(i);
 					i--;
@@ -235,8 +307,6 @@ public class Level {
 
 	// Adds gas tiles until the requisite number of squares are filled or there is
 	// no more room
-
-	
 
 	private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<Gas> placedThisRound) {
 		map.addTile(col, row, new Gas(col, row, tileSize, tileset.getImage("GasOne"), this, 0));
@@ -297,8 +367,8 @@ public class Level {
 		}
 
 		// stop if solid or like ground
-		if (map.getTiles()[col][row] != null &&
-				map.getTiles()[col][row].isSolid()) {
+		if ((map.getTiles()[col][row] != null &&
+				map.getTiles()[col][row].isSolid())) {
 			return;
 		}
 
@@ -310,7 +380,7 @@ public class Level {
 			image = "Quarter_water";
 		else if (fullness == 0)
 			image = "Falling_water";
-
+		System.out.println("got here too");
 		Water w = new Water(col, row, tileSize, tileset.getImage(image), this, fullness);
 
 		map.addTile(col, row, w);
@@ -322,7 +392,7 @@ public class Level {
 			Tile below = map.getTiles()[col][row + 1];
 
 			// empty space below -> fall
-			if (!below.isSolid()) {
+			if (below == null || !below.isSolid()) {
 
 				if (row + 2 < map.getTiles()[0].length && map.getTiles()[col][row + 2].isSolid()) {
 
@@ -343,8 +413,16 @@ public class Level {
 		int nextFullness = fullness;
 		if (fullness > 1)
 			nextFullness = fullness - 1;
-		else
-			water(col + 1, row, map, nextFullness);
+		else {
+			// falling water that lands becomes full
+			nextFullness = fullness;
+			if (fullness > 1)
+				nextFullness = fullness - 1;
+			// ================== CHANGE 4: PREVENTED INFINITE RECURSION WHEN FULLNESS HITS
+			// ZERO ==================
+			else
+				return;
+		}
 
 		// right
 		water(col + 1, row, map, nextFullness);
